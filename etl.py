@@ -15,7 +15,6 @@ def get_sqs_messages(queue_url):
         WaitTimeSeconds=5
     )
     messages = response.get('Messages', [])
-    print(messages)
     return messages
 
 # Masking PII values
