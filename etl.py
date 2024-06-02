@@ -5,17 +5,30 @@ import base64
 import json
 
 # Getting messages
-def get_sqs_messages(queue_url):
-    """Getting messages from local SQS queue"""
+# def get_sqs_messages(queue_url):
+#     """Getting messages from local SQS queue"""
 
-    sqs = boto3.client('sqs', endpoint_url='http://localhost:4566', region_name='us-east-1')
-    response = sqs.receive_message(
-        QueueUrl=queue_url,
-        MaxNumberOfMessages=10,
-        WaitTimeSeconds=5
-    )
-    messages = response.get('Messages', [])
-    return messages
+#     sqs = boto3.client('sqs', endpoint_url='http://localhost:4566', region_name='us-east-1')
+#     response = sqs.receive_message(
+#         QueueUrl=queue_url,
+#         MaxNumberOfMessages=10,
+#         WaitTimeSeconds=5
+#     )
+#     messages = response.get('Messages', [])
+#     return messages
+
+def get_sqs_messages(queue_url):
+  """Getting messages from local SQS queue"""
+
+  sqs = boto3.client('sqs', region_name='us-east-1', aws_access_key_id='dummy', aws_secret_access_key='dummy') 
+  response = sqs.receive_message(
+      QueueUrl=queue_url,
+      MaxNumberOfMessages=10,
+      WaitTimeSeconds=5,
+      Action='ReceiveMessage'  
+  )
+  messages = response.get('Messages', [])
+  return messages
 
 # Masking PII values
 def mask_pii(value):
