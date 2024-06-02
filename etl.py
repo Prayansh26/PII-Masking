@@ -1,21 +1,24 @@
-import subprocess
+import boto3
 import psycopg2
 import hashlib
 import base64
 import json
 
-
-import os
-
-print("AWS_ACCESS_KEY_ID:", os.environ.get("AWS_ACCESS_KEY_ID"))
-print("AWS_SECRET_ACCESS_KEY:", os.environ.get("AWS_SECRET_ACCESS_KEY"))
-
 #Getting messages
 def get_sqs_messages(queue_url):
     """Getting messages from local SQS queue"""
-    command = f"aws --endpoint-url=http://localstack:4566 sqs receive-message --queue-url {queue_url} --max-number-of-messages 10 --wait-time-seconds 5"
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    response = json.loads(result.stdout)
+    sqs = boto3.client(
+        'sqs',
+        aws_access_key_id='dummy',
+        aws_secret_access_key='dummy',
+        region_name='us-east-1',
+        endpoint_url='http://localstack:4566'
+    )
+    response = sqs.receive_message(
+        QueueUrl=queue_url,
+        MaxNumberOfMessages=10,
+        WaitTimeSeconds=5
+    )
     return response.get('Messages', [])
 
 # Masking PII values
@@ -72,16 +75,17 @@ def write_to_postgres(records):
     conn.close()
 
 if __name__ == "__main__":
+
     # Define the SQS queue URL
     queue_url = 'http://localhost:4566/000000000000/login-queue'
 
     # Fetch messages from the SQS queue
     messages = get_sqs_messages(queue_url)
-    
+
     if not messages:
         print("No messages found in the queue.")
         exit()
-    
+
     # Process each message
     records = [process_message(msg) for msg in messages]
 
