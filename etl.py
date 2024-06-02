@@ -17,9 +17,9 @@ import subprocess
 
 #Getting messages
 
-def get_sqs_messages(queue_url):
+def get_sqs_messages():
     """Getting messages from local SQS queue using awslocal"""
-    command = f"awslocal sqs receive-message --queue-url {queue_url}"
+    command = "awslocal sqs receive-message --queue-url http://localhost:4566/000000000000/login-queue"
     print(f"Running command: {command}")
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
     print(f"Command output: {result.stdout}")
@@ -105,10 +105,10 @@ def write_to_postgres(records):
 if __name__ == "__main__":
 
     # Define the SQS queue URL
-    queue_url = 'http://localhost:4566/000000000000/login-queue'
+    #queue_url = 'http://localhost:4566/000000000000/login-queue'
 
     # Fetch messages from the SQS queue
-    messages = get_sqs_messages(queue_url)
+    messages = get_sqs_messages()
 
     if not messages:
         print("No messages found in the queue.")
