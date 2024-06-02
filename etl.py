@@ -4,11 +4,20 @@ import hashlib
 import base64
 import json
 
+my_config = Config(
+    region_name = 'your-region',
+    retries = {
+        'max_attempts': 10,
+        'mode': 'standard'
+    }
+)
+
 #Getting messages
 def get_sqs_messages(queue_url):
     """Getting messages from local SQS queue"""
     sqs = boto3.client(
         'sqs',
+        config = my_config,
         aws_access_key_id='dummy',
         aws_secret_access_key='dummy',
         region_name='us-east-1',
