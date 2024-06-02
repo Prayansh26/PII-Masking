@@ -7,13 +7,13 @@ import subprocess
 # from botocore.config import Config
 # from botocore.exceptions import ClientError
 
-my_config = Config(
-    region_name = 'your-region',
-    retries = {
-        'max_attempts': 10,
-        'mode': 'standard'
-    }
-)
+# my_config = Config(
+#     region_name = 'your-region',
+#     retries = {
+#         'max_attempts': 10,
+#         'mode': 'standard'
+#     }
+# )
 
 #Getting messages
 
