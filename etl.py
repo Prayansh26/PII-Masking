@@ -3,6 +3,7 @@ import psycopg2
 import hashlib
 import base64
 import json
+from botocore.config import Config
 
 my_config = Config(
     region_name = 'your-region',
