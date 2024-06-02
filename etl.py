@@ -12,7 +12,7 @@ def get_sqs_messages(queue_url):
         aws_access_key_id='dummy',
         aws_secret_access_key='dummy',
         region_name='us-east-1',
-        endpoint_url='http://host.docker.internal:4566'
+        endpoint_url='http://%s:4566" % os.environ["LOCALSTACK_HOSTNAME"]'
     )
     response = sqs.receive_message(
         QueueUrl=queue_url,
