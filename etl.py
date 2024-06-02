@@ -3,9 +3,8 @@ import hashlib
 import base64
 import json
 import subprocess
-
-# from botocore.config import Config
-# from botocore.exceptions import ClientError
+import boto3
+import os
 
 # my_config = Config(
 #     region_name = 'your-region',
@@ -14,37 +13,42 @@ import subprocess
 #         'mode': 'standard'
 #     }
 # )
+queue_url = 'http://localhost:4566/000000000000/login-queue'
+AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME','us-west-2')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY','x')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID','x')
 
 #Getting messages
 
+# def get_sqs_messages():
+#     """Getting messages from local SQS queue using awslocal"""
+#     command = "awslocal sqs receive-message --queue-url http://localhost:4566/000000000000/login-queue"
+#     print(f"Running command: {command}")
+#     result = subprocess.run(command, shell=True, capture_output=True, text=True)
+#     print(f"Command output: {result.stdout}")
+#     try:
+#         response = json.loads(result.stdout)
+#         return response.get('Messages', [])
+#     except json.JSONDecodeError as e:
+#         print(f"Error decoding JSON: {e}")
+#         return []
 def get_sqs_messages():
-    """Getting messages from local SQS queue using awslocal"""
-    command = "awslocal sqs receive-message --queue-url http://localhost:4566/000000000000/login-queue"
-    print(f"Running command: {command}")
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    print(f"Command output: {result.stdout}")
-    try:
-        response = json.loads(result.stdout)
-        return response.get('Messages', [])
-    except json.JSONDecodeError as e:
-        print(f"Error decoding JSON: {e}")
-        return []
-# def get_sqs_messages(queue_url):
-#     """Getting messages from local SQS queue"""
-#     sqs = boto3.client(
-#         'sqs',
-#         config = my_config,
-#         aws_access_key_id='dummy',
-#         aws_secret_access_key='dummy',
-#         region_name='us-east-1',
-#         endpoint_url='http://host.docker.internal:4566'
-#     )
-#     response = sqs.receive_message(
-#         QueueUrl=queue_url,
-#         MaxNumberOfMessages=10,
-#         WaitTimeSeconds=5
-#     )
-#     return response.get('Messages', [])
+    """Getting messages from local SQS queue"""
+    sqs = boto3.client(
+        'sqs',
+        use_ssl=False,
+        region_name=AWS_REGION_NAME,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        endpoint_url=queue_url
+    )
+
+    response = sqs.receive_message(
+        QueueUrl=queue_url,
+        MaxNumberOfMessages=10,
+        WaitTimeSeconds=5
+    )
+    return response.get('Messages', [])
 
 
 
