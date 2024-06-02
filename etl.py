@@ -1,4 +1,3 @@
-import boto3
 import psycopg2
 import hashlib
 import base64
