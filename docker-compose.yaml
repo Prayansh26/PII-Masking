@@ -28,3 +28,4 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
     platform: linux/amd64
+    network_mode: bridge
