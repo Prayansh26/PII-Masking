@@ -1,40 +1,23 @@
-#import boto3
-import requests
+import boto3
 import psycopg2
 import hashlib
 import base64
 import json
 
-# Getting messages
-# def get_sqs_messages(queue_url):
-#     """Getting messages from local SQS queue"""
-
-#     sqs = boto3.client('sqs', endpoint_url='http://localhost:4566', region_name='us-east-1')
-#     response = sqs.receive_message(
-#         QueueUrl=queue_url,
-#         MaxNumberOfMessages=10,
-#         WaitTimeSeconds=5
-#     )
-#     messages = response.get('Messages', [])
-#     return messages
-
+#Getting messages
 def get_sqs_messages(queue_url):
     """Getting messages from local SQS queue"""
-    response = requests.post(
-        queue_url,
-        headers={
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        data={
-            'Action': 'ReceiveMessage',
-            'MaxNumberOfMessages': 10,
-            'WaitTimeSeconds': 5,
-            'Version': '2012-11-05'
-        }
+
+    # Specify dummy credentials to bypass the NoCredentialsError
+    sqs = boto3.client('sqs', endpoint_url='http://localhost:4566', region_name='us-east-1', aws_access_key_id='dummy', aws_secret_access_key='dummy')
+    response = sqs.receive_message(
+        QueueUrl=queue_url,
+        MaxNumberOfMessages=10,
+        WaitTimeSeconds=5
     )
-    response.raise_for_status()
-    messages = response.json().get('ReceiveMessageResponse', {}).get('ReceiveMessageResult', {}).get('Message', [])
-    return messages if isinstance(messages, list) else [messages]
+    messages = response.get('Messages', [])
+    print(messages)
+    return messages
 
 # Masking PII values
 def mask_pii(value):
