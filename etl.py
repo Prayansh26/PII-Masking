@@ -3,7 +3,8 @@ import psycopg2
 import hashlib
 import base64
 import json
-from botocore.config import Config
+# from botocore.config import Config
+# from botocore.exceptions import ClientError
 
 my_config = Config(
     region_name = 'your-region',
@@ -14,22 +15,32 @@ my_config = Config(
 )
 
 #Getting messages
+
 def get_sqs_messages(queue_url):
-    """Getting messages from local SQS queue"""
-    sqs = boto3.client(
-        'sqs',
-        config = my_config,
-        aws_access_key_id='dummy',
-        aws_secret_access_key='dummy',
-        region_name='us-east-1',
-        endpoint_url='http://host.docker.internal:4566'
-    )
-    response = sqs.receive_message(
-        QueueUrl=queue_url,
-        MaxNumberOfMessages=10,
-        WaitTimeSeconds=5
-    )
+    """Getting messages from local SQS queue using awslocal"""
+    command = f"awslocal sqs receive-message --queue-url {queue_url}"
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    response = json.loads(result.stdout)
     return response.get('Messages', [])
+# def get_sqs_messages(queue_url):
+#     """Getting messages from local SQS queue"""
+#     sqs = boto3.client(
+#         'sqs',
+#         config = my_config,
+#         aws_access_key_id='dummy',
+#         aws_secret_access_key='dummy',
+#         region_name='us-east-1',
+#         endpoint_url='http://host.docker.internal:4566'
+#     )
+#     response = sqs.receive_message(
+#         QueueUrl=queue_url,
+#         MaxNumberOfMessages=10,
+#         WaitTimeSeconds=5
+#     )
+#     return response.get('Messages', [])
+
+
+
 
 # Masking PII values
 def mask_pii(value):
