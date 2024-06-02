@@ -3,6 +3,8 @@ import psycopg2
 import hashlib
 import base64
 import json
+import subprocess
+
 # from botocore.config import Config
 # from botocore.exceptions import ClientError
 
