@@ -20,9 +20,15 @@ import subprocess
 def get_sqs_messages(queue_url):
     """Getting messages from local SQS queue using awslocal"""
     command = f"awslocal sqs receive-message --queue-url {queue_url}"
+    print(f"Running command: {command}")
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
-    response = json.loads(result.stdout)
-    return response.get('Messages', [])
+    print(f"Command output: {result.stdout}")
+    try:
+        response = json.loads(result.stdout)
+        return response.get('Messages', [])
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        return []
 # def get_sqs_messages(queue_url):
 #     """Getting messages from local SQS queue"""
 #     sqs = boto3.client(
