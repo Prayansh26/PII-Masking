@@ -1,2 +1,2 @@
-boto3
+subprocess
 psycopg2-binary
