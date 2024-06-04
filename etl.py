@@ -14,9 +14,6 @@ import os
 #     }
 # )
 queue_url = 'http://localhost:4566/000000000000/login-queue'
-AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME','us-west-2')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY','x')
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID','x')
 
 #Getting messages
 
@@ -37,9 +34,9 @@ def get_sqs_messages():
     sqs = boto3.client(
         'sqs',
         use_ssl=False,
-        region_name=AWS_REGION_NAME,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        region_name='us-west-2',
+        aws_secret_access_key='dummy',
+        aws_access_key_id='dummy',
         endpoint_url=queue_url
     )
 
