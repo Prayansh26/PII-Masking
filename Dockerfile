@@ -8,7 +8,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
-    curl \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy the current directory contents into the container at /app
@@ -18,9 +17,9 @@ COPY . /app
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copy wait script
-COPY wait_for_services.sh /wait_for_services.sh
-RUN chmod +x /wait_for_services.sh
+# Expose port 80 to the world outside this container (optional, can be removed if not needed)
+EXPOSE 80
 
-# Run the wait script followed by the main script
-ENTRYPOINT ["/wait_for_services.sh", "python", "etl.py"]
+# Run the script
+ENTRYPOINT ["python", "etl.py"]
+

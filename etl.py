@@ -6,11 +6,11 @@ import boto3
 import os
 
 # Environment variables for configuration
-queue_url = 'http://localstack:4566/000000000000/login-queue'
-DB_HOST = os.environ.get('DB_HOST', 'postgres')
+queue_url = 'http://localhost:4566/000000000000/login-queue'
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_NAME = os.environ.get('DB_NAME', 'postgres')
-DB_USER = os.environ.get('DB_USER', 'postgres')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres')
+DB_USER = os.environ.get('POSTGRES_USER', 'postgres')
+DB_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'postgres')
 AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME', 'us-west-2')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'dummy')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 'dummy')
@@ -34,19 +34,14 @@ def get_sqs_messages():
         region_name=AWS_REGION_NAME,
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         aws_access_key_id=AWS_ACCESS_KEY_ID,
-        endpoint_url='http://localstack:4566'
+        endpoint_url='http://localhost:4566'
     )
-    
-    try:
-        response = sqs.receive_message(
-            QueueUrl=queue_url,
-            MaxNumberOfMessages=10,
-            WaitTimeSeconds=5
-        )
-        return response.get('Messages', [])
-    except boto3.exceptions.EndpointConnectionError as e:
-        print(f"Error connecting to SQS endpoint: {e}")
-        return []
+    response = sqs.receive_message(
+        QueueUrl=queue_url,
+        MaxNumberOfMessages=10,
+        WaitTimeSeconds=5
+    )
+    return response.get('Messages', [])
 
 def mask_pii(value):
     """Mask PII values using SHA-256."""
@@ -97,7 +92,4 @@ def main():
     print("ETL process completed.")
 
 if __name__ == "__main__":
-    print("Starting ETL process...")
-    print(f"Queue URL: {queue_url}")
-    print("Connecting to SQS and PostgreSQL...")
     main()
