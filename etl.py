@@ -2,44 +2,40 @@ import psycopg2
 import hashlib
 import base64
 import json
-import subprocess
 import boto3
 import os
 
-# my_config = Config(
-#     region_name = 'your-region',
-#     retries = {
-#         'max_attempts': 10,
-#         'mode': 'standard'
-#     }
-# )
+# Environment variables for configuration
 queue_url = 'http://localhost:4566/000000000000/login-queue'
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_NAME = os.environ.get('DB_NAME', 'postgres')
+DB_USER = os.environ.get('POSTGRES_USER', 'postgres')
+DB_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'postgres')
+AWS_REGION_NAME = os.environ.get('AWS_REGION_NAME', 'us-west-2')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', 'dummy')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', 'dummy')
 
-#Getting messages
+def connect_to_postgres():
+    """Connect to the PostgreSQL database."""
+    conn = psycopg2.connect(
+        host=DB_HOST,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
+    )
+    cur = conn.cursor()
+    return conn, cur
 
-# def get_sqs_messages():
-#     """Getting messages from local SQS queue using awslocal"""
-#     command = "awslocal sqs receive-message --queue-url http://localhost:4566/000000000000/login-queue"
-#     print(f"Running command: {command}")
-#     result = subprocess.run(command, shell=True, capture_output=True, text=True)
-#     print(f"Command output: {result.stdout}")
-#     try:
-#         response = json.loads(result.stdout)
-#         return response.get('Messages', [])
-#     except json.JSONDecodeError as e:
-#         print(f"Error decoding JSON: {e}")
-#         return []
 def get_sqs_messages():
-    """Getting messages from local SQS queue"""
+    """Get messages from local SQS queue using boto3."""
     sqs = boto3.client(
         'sqs',
         use_ssl=False,
-        region_name='us-west-2',
-        aws_secret_access_key='dummy',
-        aws_access_key_id='dummy',
-        endpoint_url=queue_url
+        region_name=AWS_REGION_NAME,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        endpoint_url='http://localhost:4566'
     )
-
     response = sqs.receive_message(
         QueueUrl=queue_url,
         MaxNumberOfMessages=10,
@@ -47,24 +43,14 @@ def get_sqs_messages():
     )
     return response.get('Messages', [])
 
-
-
-
-# Masking PII values
 def mask_pii(value):
-    """Masking the PII input values using SHA-256 and handling duplicate values"""
-
+    """Mask PII values using SHA-256."""
     hasher = hashlib.sha256()
     hasher.update(value.encode('utf-8'))
     return base64.urlsafe_b64encode(hasher.digest()).decode('utf-8')
 
-# Processing the message
 def process_message(message):
-    """ - Pasre the JSON message
-        - Mask the PII fields
-        - Flattens the data for insertion
-    """
-
+    """Process and mask the PII fields in the message."""
     body = json.loads(message['Body'])
     masked_device_id = mask_pii(body['device_id'])
     masked_ip = mask_pii(body['ip'])
@@ -79,19 +65,9 @@ def process_message(message):
         body['create_date']
     )
 
-# Writing data to table
 def write_to_postgres(records):
-    """  Write the processed records to the Postgres database."""
-
-    conn = psycopg2.connect(
-        dbname="postgres",
-        user="postgres",
-        password="postgres",
-        host="localhost",
-        port="5432"
-    )
-    cur = conn.cursor()
-    
+    """Write the processed records to the PostgreSQL database."""
+    conn, cur = connect_to_postgres()
     insert_query = """
     INSERT INTO user_logins (user_id, device_type, masked_ip, masked_device_id, locale, app_version, create_date)
     VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -103,21 +79,17 @@ def write_to_postgres(records):
     cur.close()
     conn.close()
 
-if __name__ == "__main__":
-
-    # Define the SQS queue URL
-    #queue_url = 'http://localhost:4566/000000000000/login-queue'
-
-    # Fetch messages from the SQS queue
+def main():
+    """Main function to run the ETL process."""
     messages = get_sqs_messages()
 
     if not messages:
         print("No messages found in the queue.")
-        exit()
+        return
 
-    # Process each message
     records = [process_message(msg) for msg in messages]
-
-    # Write data to POstgres Database
     write_to_postgres(records)
     print("ETL process completed.")
+
+if __name__ == "__main__":
+    main()
